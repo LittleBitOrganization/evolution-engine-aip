@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine.Scripting;
 
 namespace LittleBit.Modules.IAppModule.Commands.Factory
 {
@@ -6,6 +7,7 @@ namespace LittleBit.Modules.IAppModule.Commands.Factory
     {
         private ICreator _creator;
 
+        [Preserve]
         public PurchaseCommandFactory(ICreator creator)
         {
             _creator = creator;
