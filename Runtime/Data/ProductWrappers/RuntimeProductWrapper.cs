@@ -19,7 +19,7 @@ namespace LittleBit.Modules.IAppModule.Data.ProductWrappers
             Metadata = new()
             {
                 CurrencyCode = product.metadata.isoCurrencyCode,
-                CurrencySymbol = RegionInfo.CurrentRegion.CurrencySymbol,
+                CurrencySymbol = CurrencyCodeMapper.GetSymbol(product.metadata.isoCurrencyCode),
                 LocalizedDescription = product.metadata.localizedDescription,
                 LocalizedPrice = product.metadata.localizedPrice,
                 LocalizedPriceString = product.metadata.localizedPriceString,
@@ -51,7 +51,7 @@ namespace LittleBit.Modules.IAppModule.Data.ProductWrappers
             Metadata = new()
             {
                 CurrencyCode = product.CurrencyCode,
-                CurrencySymbol = RegionInfo.CurrentRegion.CurrencySymbol,
+                CurrencySymbol = CurrencyCodeMapper.GetSymbol(product.CurrencyCode),
                 LocalizedDescription = product.LocalizedDescription,
                 LocalizedPrice = product.LocalizedPrice,
                 LocalizedPriceString = product.LocalizedPriceString,
