@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using LittleBit.Modules.IAppModule.Commands.Factory;
 using LittleBit.Modules.IAppModule.Data.ProductWrappers;
 using LittleBit.Modules.IAppModule.Data.Purchases;
+using UnityEngine;
 
 namespace LittleBit.Modules.IAppModule.Services
 {
@@ -49,7 +50,17 @@ namespace LittleBit.Modules.IAppModule.Services
         {
             IsInitialized = true;
 
+            _iapService.RestorePurchasedProducts(Callback);
+            
             OnInitialized?.Invoke();
+        }
+
+        private void Callback(bool obj)
+        {
+            if (obj)
+            {
+                Debug.LogError("Restore complete!");
+            }
         }
     }
 }
