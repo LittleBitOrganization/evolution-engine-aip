@@ -67,14 +67,18 @@ namespace LittleBit.Modules.IAppModule.Services.PurchaseProcessors
                     AppleInAppPurchaseReceipt apple = productReceipt as AppleInAppPurchaseReceipt;
                     if (null != apple)
                     {
-                        if (string.Equals(args.purchasedProduct.definition.storeSpecificId, apple.productID) &&
-                            string.Equals(args.purchasedProduct.transactionID, apple.transactionID))
+                        //TODO: Restored purchase can send event to analytics
+                        if (args.purchasedProduct.appleProductIsRestored || 
+                            (string.Equals(args.purchasedProduct.definition.storeSpecificId, apple.productID) &&
+                             string.Equals(args.purchasedProduct.transactionID, apple.transactionID)))
                         {
                             validPurchase = true;
                         }
+                        
                         Debug.Log(" validPurchase " + validPurchase);
                         Debug.Log(" product transactionID " + args.purchasedProduct.transactionID);
                         Debug.Log(" product definition.id " + args.purchasedProduct.definition.id);
+                        Debug.Log(" product is restored "  + args.purchasedProduct.appleProductIsRestored);
                         Debug.Log(" product definition.storeSpecificId " + args.purchasedProduct.definition.storeSpecificId);
                         Debug.Log(" apple transactionID " + apple.transactionID);
                         Debug.Log(" apple transaction originalTransactionIdentifier " + apple.originalTransactionIdentifier);
