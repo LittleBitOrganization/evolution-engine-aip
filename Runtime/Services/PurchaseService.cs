@@ -16,7 +16,13 @@ namespace LittleBit.Modules.IAppModule.Services
         private readonly PurchaseHandler _purchaseHandler;
 
         private readonly IIAPService _iapService;
-
+        
+        private bool PurchaseRestored
+        {
+            get => PlayerPrefs.GetInt("PurchaseRestored", 0) == 1;
+            set => PlayerPrefs.SetInt("PurchaseRestored", value ? 1 : 0);
+        }
+        
         public PurchaseService(IIAPService iapService,
             PurchaseCommandFactory purchaseCommandFactory,
             List<OfferConfig> offerConfigs)
@@ -50,16 +56,22 @@ namespace LittleBit.Modules.IAppModule.Services
         {
             IsInitialized = true;
 
-            _iapService.RestorePurchasedProducts(Callback);
+            if (!PurchaseRestored)
+            {
+                _iapService.RestorePurchasedProducts(Callback);
+            }
             
             OnInitialized?.Invoke();
         }
 
-        private void Callback(bool obj)
+        private void Callback(bool obj, string message)
         {
             if (obj)
             {
+                PurchaseRestored = true;
+                
                 Debug.LogError("Restore complete!");
+                Debug.LogError(message);
             }
         }
     }

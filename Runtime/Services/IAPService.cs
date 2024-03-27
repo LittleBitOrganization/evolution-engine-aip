@@ -40,7 +40,7 @@ namespace LittleBit.Modules.IAppModule.Services
             _offerConfigs = offerConfigs;
             _transactionsRestorer = transactionsRestorer;
             Init();
-
+         
             UnityPurchasing.Initialize(this, _builder);
         }
 
@@ -125,7 +125,7 @@ namespace LittleBit.Modules.IAppModule.Services
         private EditorProductWrapper GetDebugProductWrapper(string id) =>
             _productCollection.GetEditorProductWrapper(id);
 
-        public void RestorePurchasedProducts(Action<bool> callback) =>
+        public void RestorePurchasedProducts(Action<bool, string> callback) =>
             _transactionsRestorer.Restore(_extensionProvider, callback);
 
         public void OnInitializeFailed(InitializationFailureReason error)
@@ -150,6 +150,7 @@ namespace LittleBit.Modules.IAppModule.Services
                     (GetProductWrapper(id) as EditorProductWrapper)!.Purchase();
 #endif
                     OnPurchasingSuccess?.Invoke(id);
+                    _controller.ConfirmPendingPurchase(purchaseEvent.purchasedProduct);
                     PurchasingProductSuccess(id);
                 }
                 else

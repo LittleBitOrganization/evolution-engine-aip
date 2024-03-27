@@ -5,6 +5,6 @@ namespace LittleBit.Modules.IAppModule.Services.TransactionsRestorers
 {
     public interface ITransactionsRestorer
     {
-        public void Restore(IExtensionProvider extensionProvider, Action<bool> callback);
+        public void Restore(IExtensionProvider extensionProvider, Action<bool, string> callback);
     }
 }

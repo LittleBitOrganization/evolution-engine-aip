@@ -10,13 +10,12 @@ namespace LittleBit.Modules.IAppModule.Services.PurchaseProcessors
     public class CrossPlatformPurchaseHandler : IPurchaseHandler
     {
         private readonly CrossPlatformTangles _crossPlatformTangles;
-
-
+        
         public CrossPlatformPurchaseHandler(CrossPlatformTangles crossPlatformTangles)
         {
             _crossPlatformTangles = crossPlatformTangles;
         }
-
+        
         public PurchaseProcessingResult ProcessPurchase(PurchaseEventArgs args,
             Action<bool> callback)
         {
@@ -85,17 +84,21 @@ namespace LittleBit.Modules.IAppModule.Services.PurchaseProcessors
                         Debug.Log(" apple transaction subscriptionExpirationDate " + apple.subscriptionExpirationDate);
                         Debug.Log(" apple transaction cancellationDate " + apple.cancellationDate);
                         Debug.Log(" apple transaction quantity "  + apple.quantity);
+                        
                     }
                 }
             }
+            
             catch (Exception e)
             {
                 Debug.LogError("Invalid receipt!");
 
                 callback?.Invoke(false);
             }
+            
+            callback?.Invoke(validPurchase && PlayerPrefs.GetInt(args.purchasedProduct.definition.id, 0) == 0);
 
-            callback?.Invoke(validPurchase);
+            PlayerPrefs.SetInt(args.purchasedProduct.definition.id, 1);
             
             return PurchaseProcessingResult.Complete;
         }

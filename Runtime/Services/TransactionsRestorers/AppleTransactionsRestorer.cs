@@ -1,15 +1,18 @@
 ﻿using System;
+using UnityEngine;
 using UnityEngine.Purchasing;
 
 namespace LittleBit.Modules.IAppModule.Services.TransactionsRestorers
 {
     public class AppleTransactionsRestorer : ITransactionsRestorer
     {
-        public void Restore(IExtensionProvider extensionProvider, Action<bool> callback)
+        public void Restore(IExtensionProvider extensionProvider, Action<bool, string> callback)
         {
-            extensionProvider.GetExtension<IAppleExtensions>().RestoreTransactions(success =>
+            var appleExtensions = extensionProvider.GetExtension<IAppleExtensions>();
+            
+            appleExtensions.RestoreTransactions((success, message) =>
             {
-                callback?.Invoke(success);
+                callback?.Invoke(success, message);
             });
         }
     }
