@@ -96,7 +96,11 @@ namespace LittleBit.Modules.IAppModule.Services.PurchaseProcessors
                 callback?.Invoke(false);
             }
             
-            callback?.Invoke(validPurchase && PlayerPrefs.GetInt(args.purchasedProduct.definition.id, 0) == 0);
+            if(args.purchasedProduct.definition.type == ProductType.NonConsumable)
+                callback?.Invoke(validPurchase && PlayerPrefs.GetInt(args.purchasedProduct.definition.id, 0) == 0);
+            else
+                callback?.Invoke(validPurchase);
+            
 
             PlayerPrefs.SetInt(args.purchasedProduct.definition.id, 1);
             
