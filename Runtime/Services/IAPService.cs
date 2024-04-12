@@ -16,21 +16,23 @@ namespace LittleBit.Modules.IAppModule.Services
         private const string CartType = "Shop";
         private const string Signature = "VVO";
         private const string ItemType = "Offer";
+
+        private bool _isRestorePurchase;
         
         private ConfigurationBuilder _builder;
         private IStoreController _controller;
         private IExtensionProvider _extensionProvider;
 
+        private readonly ProductCollections _productCollection;
         private readonly ITransactionsRestorer _transactionsRestorer;
         private readonly IPurchaseHandler _purchaseHandler;
         private readonly List<OfferConfig> _offerConfigs;
         public event Action<string> OnPurchasingSuccess;
         public event Action<string> OnPurchasingFailed;
+        public event Action<bool, string> OnPurchasingRestored;
         public event Action OnInitializationComplete;
 
         public bool IsInitialized { get; private set; }
-
-        private readonly ProductCollections _productCollection;
 
         public IAPService(ITransactionsRestorer transactionsRestorer,
             IPurchaseHandler purchaseHandler, List<OfferConfig> offerConfigs)
@@ -51,6 +53,10 @@ namespace LittleBit.Modules.IAppModule.Services
 
             _productCollection.AddUnityIAPProductCollection(controller.products);
 
+            OnPurchasingRestored += (b, s) =>
+            {
+                _isRestorePurchase = false;
+            };
             OnInitializationComplete?.Invoke();
             IsInitialized = true;
         }
@@ -125,8 +131,11 @@ namespace LittleBit.Modules.IAppModule.Services
         private EditorProductWrapper GetDebugProductWrapper(string id) =>
             _productCollection.GetEditorProductWrapper(id);
 
-        public void RestorePurchasedProducts(Action<bool, string> callback) =>
-            _transactionsRestorer.Restore(_extensionProvider, callback);
+        public void RestorePurchasedProducts()
+        {
+            _isRestorePurchase = true;
+            _transactionsRestorer.Restore(_extensionProvider, OnPurchasingRestored);
+        }
 
         public void OnInitializeFailed(InitializationFailureReason error)
         {
@@ -174,13 +183,16 @@ namespace LittleBit.Modules.IAppModule.Services
             var definition = product.Definition;
             var receipt = product.TransactionData.Receipt;
 
-            var data = new DataEventEcommerce(
-                metadata.CurrencyCode,
-                (double) metadata.LocalizedPrice,
-                ItemType, definition.Id,
-                CartType, receipt,
-                Signature);       
-            OnPurchasingProductSuccess?.Invoke(data);
+            if (!_isRestorePurchase)
+            {
+                var data = new DataEventEcommerce(
+                    metadata.CurrencyCode,
+                    (double) metadata.LocalizedPrice,
+                    ItemType, definition.Id,
+                    CartType, receipt,
+                    Signature);       
+                OnPurchasingProductSuccess?.Invoke(data);
+            }
         }
     }
 }

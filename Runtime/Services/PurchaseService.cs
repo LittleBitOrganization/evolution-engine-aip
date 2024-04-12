@@ -41,6 +41,14 @@ namespace LittleBit.Modules.IAppModule.Services
 
         public IProductWrapper GetProductWrapper(OfferConfig offerConfig) => GetProductWrapper(offerConfig.Id);
 
+        public void RestorePurchase()
+        {
+            if (!PurchaseRestored)
+            {
+                _iapService.RestorePurchasedProducts();
+            }
+        }
+
         private void Subscribe()
         {
             if (_iapService.IsInitialized)
@@ -50,21 +58,17 @@ namespace LittleBit.Modules.IAppModule.Services
             }
             
             _iapService.OnInitializationComplete += OnInitializationComplete;
+            _iapService.OnPurchasingRestored += PurchasingRestored;
         }
 
         private void OnInitializationComplete()
         {
             IsInitialized = true;
-
-            if (!PurchaseRestored)
-            {
-                _iapService.RestorePurchasedProducts(Callback);
-            }
             
             OnInitialized?.Invoke();
         }
 
-        private void Callback(bool obj, string message)
+        private void PurchasingRestored(bool obj, string message)
         {
             if (obj)
             {
