@@ -34,6 +34,12 @@ namespace LittleBit.Modules.IAppModule.Services
 
         public bool IsInitialized { get; private set; }
 
+        public bool PurchaseRestored
+        {
+            get => PlayerPrefs.GetInt("PurchaseRestored", 0) == 1;
+            private set => PlayerPrefs.SetInt("PurchaseRestored", value ? 1 : 0);
+        }
+
         public IAPService(ITransactionsRestorer transactionsRestorer,
             IPurchaseHandler purchaseHandler, List<OfferConfig> offerConfigs)
         {
@@ -53,8 +59,16 @@ namespace LittleBit.Modules.IAppModule.Services
 
             _productCollection.AddUnityIAPProductCollection(controller.products);
 
-            OnPurchasingRestored += (b, s) =>
+            OnPurchasingRestored += (complete, message) =>
             {
+                if (complete)
+                {
+                    PurchaseRestored = true;
+
+                    Debug.LogError("Restore complete!");
+                    Debug.LogError(message);
+                }
+                
                 _isRestorePurchase = false;
             };
             OnInitializationComplete?.Invoke();
@@ -133,8 +147,11 @@ namespace LittleBit.Modules.IAppModule.Services
 
         public void RestorePurchasedProducts()
         {
-            _isRestorePurchase = true;
-            _transactionsRestorer.Restore(_extensionProvider, OnPurchasingRestored);
+            if (!PurchaseRestored)
+            {
+                _isRestorePurchase = true;
+                _transactionsRestorer.Restore(_extensionProvider, OnPurchasingRestored);
+            }
         }
 
         public void OnInitializeFailed(InitializationFailureReason error)

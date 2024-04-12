@@ -17,11 +17,6 @@ namespace LittleBit.Modules.IAppModule.Services
 
         private readonly IIAPService _iapService;
         
-        private bool PurchaseRestored
-        {
-            get => PlayerPrefs.GetInt("PurchaseRestored", 0) == 1;
-            set => PlayerPrefs.SetInt("PurchaseRestored", value ? 1 : 0);
-        }
         
         public PurchaseService(IIAPService iapService,
             PurchaseCommandFactory purchaseCommandFactory,
@@ -41,14 +36,6 @@ namespace LittleBit.Modules.IAppModule.Services
 
         public IProductWrapper GetProductWrapper(OfferConfig offerConfig) => GetProductWrapper(offerConfig.Id);
 
-        public void RestorePurchase()
-        {
-            if (!PurchaseRestored)
-            {
-                _iapService.RestorePurchasedProducts();
-            }
-        }
-
         private void Subscribe()
         {
             if (_iapService.IsInitialized)
@@ -58,7 +45,6 @@ namespace LittleBit.Modules.IAppModule.Services
             }
             
             _iapService.OnInitializationComplete += OnInitializationComplete;
-            _iapService.OnPurchasingRestored += PurchasingRestored;
         }
 
         private void OnInitializationComplete()
@@ -66,17 +52,6 @@ namespace LittleBit.Modules.IAppModule.Services
             IsInitialized = true;
             
             OnInitialized?.Invoke();
-        }
-
-        private void PurchasingRestored(bool obj, string message)
-        {
-            if (obj)
-            {
-                PurchaseRestored = true;
-                
-                Debug.LogError("Restore complete!");
-                Debug.LogError(message);
-            }
         }
     }
 }
