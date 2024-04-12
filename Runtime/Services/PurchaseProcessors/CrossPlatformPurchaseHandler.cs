@@ -1,5 +1,4 @@
 ﻿using System;
-using com.adjust.sdk.purchase;
 using LittleBit.Modules.IAppModule.Data;
 using UnityEngine;
 using UnityEngine.Purchasing;
@@ -23,8 +22,6 @@ namespace LittleBit.Modules.IAppModule.Services.PurchaseProcessors
             
             try
             {
-                
-                
 #if DEBUG_STOREKIT_TEST
                 var validator = new CrossPlatformValidator(_crossPlatformTangles.GetGoogleData(),
                     _crossPlatformTangles.GetAppleTestData(), Application.identifier);
@@ -66,7 +63,6 @@ namespace LittleBit.Modules.IAppModule.Services.PurchaseProcessors
                     AppleInAppPurchaseReceipt apple = productReceipt as AppleInAppPurchaseReceipt;
                     if (null != apple)
                     {
-                        //TODO: Restored purchase can send event to analytics
                         if (args.purchasedProduct.appleProductIsRestored || 
                             (string.Equals(args.purchasedProduct.definition.storeSpecificId, apple.productID) &&
                              string.Equals(args.purchasedProduct.transactionID, apple.transactionID)))
@@ -84,7 +80,6 @@ namespace LittleBit.Modules.IAppModule.Services.PurchaseProcessors
                         Debug.Log(" apple transaction subscriptionExpirationDate " + apple.subscriptionExpirationDate);
                         Debug.Log(" apple transaction cancellationDate " + apple.cancellationDate);
                         Debug.Log(" apple transaction quantity "  + apple.quantity);
-                        
                     }
                 }
             }
@@ -101,7 +96,6 @@ namespace LittleBit.Modules.IAppModule.Services.PurchaseProcessors
             else
                 callback?.Invoke(validPurchase);
             
-
             PlayerPrefs.SetInt(args.purchasedProduct.definition.id, 1);
             
             return PurchaseProcessingResult.Complete;
