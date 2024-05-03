@@ -19,77 +19,99 @@ namespace LittleBit.Modules.IAppModule.Services.PurchaseProcessors
             Action<bool> callback)
         {
             bool validPurchase = false;
-            
-            try
+
+            TextAsset jsonFile = Resources.Load<TextAsset>("BillingMode");
+
+            if (jsonFile != null)
             {
-#if DEBUG_STOREKIT_TEST
-                var validator = new CrossPlatformValidator(_crossPlatformTangles.GetGoogleData(),
-                    _crossPlatformTangles.GetAppleTestData(), Application.identifier);
-                 
-#else
-                var validator =
-                    new CrossPlatformValidator(_crossPlatformTangles.GetGoogleData(),
-                        _crossPlatformTangles.GetAppleData(), Application.identifier);
-#endif
+                BillingModeData billingModeData = JsonUtility.FromJson<BillingModeData>(jsonFile.text);
+
+                Debug.LogError("Store is " + billingModeData.androidStore);
                 
-                var purchaseReciepts = validator.Validate(args.purchasedProduct.receipt);
-
-                foreach (var productReceipt in purchaseReciepts)
+                if (billingModeData.androidStore.Equals("AmazonAppStore"))
                 {
-                    GooglePlayReceipt google = productReceipt as GooglePlayReceipt;
-                    if (null != google)
+                    validPurchase = true;
+                }
+                else
+                {
+                    try
                     {
-                        if (string.Equals(args.purchasedProduct.transactionID,google.purchaseToken) &&
-                            string.Equals(args.purchasedProduct.definition.storeSpecificId, google.productID))
-                        {
-                            validPurchase = true;
-                        }
-
-                        if ((int) google.purchaseState == 4)
-                        {
-                            Debug.Log("Deferred IAP, Not bought yet!");
-                            return PurchaseProcessingResult.Pending;
-                        }
+        #if DEBUG_STOREKIT_TEST
+                        var validator = new CrossPlatformValidator(_crossPlatformTangles.GetGoogleData(),
+                            _crossPlatformTangles.GetAppleTestData(), Application.identifier);
+                         
+        #else
+                        var validator =
+                            new CrossPlatformValidator(_crossPlatformTangles.GetGoogleData(),
+                                _crossPlatformTangles.GetAppleData(), Application.identifier);
+        #endif
                         
-                        Debug.Log(" product transactionID " + args.purchasedProduct.transactionID);
-                        Debug.Log(" product definition.id " + args.purchasedProduct.definition.id);
-                        Debug.Log(" product definition.storeSpecificId" + args.purchasedProduct.definition.storeSpecificId);
-                        Debug.Log(" google productID " + google.productID);
-                        Debug.Log(" google transactionID " + google.transactionID);
-                        Debug.Log(" google purchaseState " + google.purchaseState);
-                        Debug.Log(" google purchaseToken " + google.purchaseToken);
+                        var purchaseReciepts = validator.Validate(args.purchasedProduct.receipt);
+
+                        foreach (var productReceipt in purchaseReciepts)
+                        {
+                            GooglePlayReceipt google = productReceipt as GooglePlayReceipt;
+                            if (null != google)
+                            {
+                                if (string.Equals(args.purchasedProduct.transactionID,google.purchaseToken) &&
+                                    string.Equals(args.purchasedProduct.definition.storeSpecificId, google.productID))
+                                {
+                                    validPurchase = true;
+                                }
+
+                                if ((int) google.purchaseState == 4)
+                                {
+                                    Debug.Log("Deferred IAP, Not bought yet!");
+                                    return PurchaseProcessingResult.Pending;
+                                }
+                                
+                                Debug.Log(" product transactionID " + args.purchasedProduct.transactionID);
+                                Debug.Log(" product definition.id " + args.purchasedProduct.definition.id);
+                                Debug.Log(" product definition.storeSpecificId" + args.purchasedProduct.definition.storeSpecificId);
+                                Debug.Log(" google productID " + google.productID);
+                                Debug.Log(" google transactionID " + google.transactionID);
+                                Debug.Log(" google purchaseState " + google.purchaseState);
+                                Debug.Log(" google purchaseToken " + google.purchaseToken);
+                            }
+
+                            AppleInAppPurchaseReceipt apple = productReceipt as AppleInAppPurchaseReceipt;
+                            if (null != apple)
+                            {
+                                if (args.purchasedProduct.appleProductIsRestored || 
+                                    (string.Equals(args.purchasedProduct.definition.storeSpecificId, apple.productID) &&
+                                     string.Equals(args.purchasedProduct.transactionID, apple.transactionID)))
+                                {
+                                    validPurchase = true;
+                                }
+                                
+                                Debug.Log(" validPurchase " + validPurchase);
+                                Debug.Log(" product transactionID " + args.purchasedProduct.transactionID);
+                                Debug.Log(" product definition.id " + args.purchasedProduct.definition.id);
+                                Debug.Log(" product is restored "  + args.purchasedProduct.appleProductIsRestored);
+                                Debug.Log(" product definition.storeSpecificId " + args.purchasedProduct.definition.storeSpecificId);
+                                Debug.Log(" apple transactionID " + apple.transactionID);
+                                Debug.Log(" apple transaction originalTransactionIdentifier " + apple.originalTransactionIdentifier);
+                                Debug.Log(" apple transaction subscriptionExpirationDate " + apple.subscriptionExpirationDate);
+                                Debug.Log(" apple transaction cancellationDate " + apple.cancellationDate);
+                                Debug.Log(" apple transaction quantity "  + apple.quantity);
+                            }
+                        }
                     }
-
-                    AppleInAppPurchaseReceipt apple = productReceipt as AppleInAppPurchaseReceipt;
-                    if (null != apple)
+            
+                    catch (Exception e)
                     {
-                        if (args.purchasedProduct.appleProductIsRestored || 
-                            (string.Equals(args.purchasedProduct.definition.storeSpecificId, apple.productID) &&
-                             string.Equals(args.purchasedProduct.transactionID, apple.transactionID)))
-                        {
-                            validPurchase = true;
-                        }
-                        
-                        Debug.Log(" validPurchase " + validPurchase);
-                        Debug.Log(" product transactionID " + args.purchasedProduct.transactionID);
-                        Debug.Log(" product definition.id " + args.purchasedProduct.definition.id);
-                        Debug.Log(" product is restored "  + args.purchasedProduct.appleProductIsRestored);
-                        Debug.Log(" product definition.storeSpecificId " + args.purchasedProduct.definition.storeSpecificId);
-                        Debug.Log(" apple transactionID " + apple.transactionID);
-                        Debug.Log(" apple transaction originalTransactionIdentifier " + apple.originalTransactionIdentifier);
-                        Debug.Log(" apple transaction subscriptionExpirationDate " + apple.subscriptionExpirationDate);
-                        Debug.Log(" apple transaction cancellationDate " + apple.cancellationDate);
-                        Debug.Log(" apple transaction quantity "  + apple.quantity);
+                        Debug.LogError("Invalid receipt!");
+
+                        callback?.Invoke(false);
                     }
                 }
             }
-            
-            catch (Exception e)
+            else
             {
-                Debug.LogError("Invalid receipt!");
-
-                callback?.Invoke(false);
+                Debug.LogError("Failed to load JSON file from resources.");
             }
+            
+            
             
             if(args.purchasedProduct.definition.type == ProductType.NonConsumable)
                 callback?.Invoke(validPurchase && PlayerPrefs.GetInt(args.purchasedProduct.definition.id, 0) == 0);

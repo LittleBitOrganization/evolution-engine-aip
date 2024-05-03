@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using LittleBit.Modules.IAppModule.Data;
 using LittleBit.Modules.IAppModule.Data.ProductWrappers;
 using LittleBit.Modules.IAppModule.Data.Purchases;
 using LittleBit.Modules.IAppModule.Services.PurchaseProcessors;
@@ -22,7 +23,8 @@ namespace LittleBit.Modules.IAppModule.Services
         private ConfigurationBuilder _builder;
         private IStoreController _controller;
         private IExtensionProvider _extensionProvider;
-
+        private AppStore _appStore;
+        
         private readonly ProductCollections _productCollection;
         private readonly ITransactionsRestorer _transactionsRestorer;
         private readonly IPurchaseHandler _purchaseHandler;
@@ -79,10 +81,12 @@ namespace LittleBit.Modules.IAppModule.Services
         {
             _builder = ConfigurationBuilder.Instance(StandardPurchasingModule.Instance());
 
+            _appStore = StandardPurchasingModule.Instance().appStore;
+            
             _offerConfigs.ForEach(offer =>
             {
                 _builder.AddProduct(offer.Id, offer.ProductType);
-
+                
                 _productCollection.AddConfig(offer);
             });
 
@@ -150,7 +154,9 @@ namespace LittleBit.Modules.IAppModule.Services
             if (!PurchaseRestored)
             {
                 _isRestorePurchase = true;
-                _transactionsRestorer.Restore(_extensionProvider, OnPurchasingRestored);
+                
+                if(_appStore == AppStore.GooglePlay || _appStore == AppStore.AppleAppStore)
+                    _transactionsRestorer.Restore(_extensionProvider, OnPurchasingRestored);
             }
         }
 
