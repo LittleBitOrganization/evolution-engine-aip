@@ -6,6 +6,7 @@ using LittleBit.Modules.IAppModule.Data.Purchases;
 using LittleBit.Modules.IAppModule.Services.PurchaseProcessors;
 using LittleBit.Modules.IAppModule.Services.TransactionsRestorers;
 using LittleBitGames.Environment.Events;
+using LittleBitGames.Environment.Purchase;
 using UnityEngine;
 using UnityEngine.Purchasing;
 
@@ -29,6 +30,7 @@ namespace LittleBit.Modules.IAppModule.Services
         private readonly ITransactionsRestorer _transactionsRestorer;
         private readonly IPurchaseHandler _purchaseHandler;
         private readonly List<OfferConfig> _offerConfigs;
+        private readonly List<IPurchaseValidator> _purchaseValidators;
         public event Action<string> OnPurchasingSuccess;
         public event Action<string> OnPurchasingFailed;
         public event Action<bool, string> OnPurchasingRestored;
@@ -43,11 +45,12 @@ namespace LittleBit.Modules.IAppModule.Services
         }
 
         public IAPService(ITransactionsRestorer transactionsRestorer,
-            IPurchaseHandler purchaseHandler, List<OfferConfig> offerConfigs)
+            IPurchaseHandler purchaseHandler, List<OfferConfig> offerConfigs, List<IPurchaseValidator> purchaseValidators)
         {
             _productCollection = new ProductCollections();
             _purchaseHandler = purchaseHandler;
             _offerConfigs = offerConfigs;
+            _purchaseValidators = purchaseValidators;
             _transactionsRestorer = transactionsRestorer;
             Init();
          
@@ -99,6 +102,11 @@ namespace LittleBit.Modules.IAppModule.Services
 
         public void Purchase(string id, bool freePurchase)
         {
+            foreach (var purchaseValidator in _purchaseValidators)
+            {
+                purchaseValidator.Reset();
+            }
+            
 #if IAP_DEBUG || UNITY_EDITOR
             var product = (GetProductWrapper(id) as EditorProductWrapper);
 
@@ -106,6 +114,7 @@ namespace LittleBit.Modules.IAppModule.Services
             
             if (!product.Metadata.CanPurchase) return;
             
+          
             product!.Purchase();
             OnPurchasingSuccess?.Invoke(id);
             PurchasingProductSuccess(id);
@@ -122,7 +131,9 @@ namespace LittleBit.Modules.IAppModule.Services
                 return;
             }
 
+            
             _controller.InitiatePurchase(product);
+
 #endif
         }
 
@@ -170,20 +181,37 @@ namespace LittleBit.Modules.IAppModule.Services
             Debug.LogError("Initialization failed - !"+error+ ". Message " + message);
         }
 
+        private async void OtherValidate(PurchaseEventArgs purchaseEvent)
+        {
+            var id = purchaseEvent.purchasedProduct.definition.id;
+            
+            foreach (var purchaseValidator in _purchaseValidators)
+            {
+                var result = await purchaseValidator.ValidateAsync();
+                if (result == false)
+                {
+                    OnPurchasingFailed?.Invoke(id);
+                    break;
+                }
+            }
+         
+            OnPurchasingSuccess?.Invoke(id);
+            _controller.ConfirmPendingPurchase(purchaseEvent.purchasedProduct);
+            PurchasingProductSuccess(id);
+        }
+
         public PurchaseProcessingResult ProcessPurchase(PurchaseEventArgs purchaseEvent)
         {
             var result = _purchaseHandler.ProcessPurchase(purchaseEvent, (success) =>
             {
                 var id = purchaseEvent.purchasedProduct.definition.id;
-
                 if (success)
                 {
 #if IAP_DEBUG || UNITY_EDITOR
                     (GetProductWrapper(id) as EditorProductWrapper)!.Purchase();
 #endif
-                    OnPurchasingSuccess?.Invoke(id);
-                    _controller.ConfirmPendingPurchase(purchaseEvent.purchasedProduct);
-                    PurchasingProductSuccess(id);
+                    OtherValidate(purchaseEvent);
+                    
                 }
                 else
                     OnPurchasingFailed?.Invoke(id);
