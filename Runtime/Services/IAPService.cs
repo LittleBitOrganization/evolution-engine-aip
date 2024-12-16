@@ -191,7 +191,7 @@ namespace LittleBit.Modules.IAppModule.Services
                 if (result == false)
                 {
                     OnPurchasingFailed?.Invoke(id);
-                    break;
+                    return;
                 }
             }
          
