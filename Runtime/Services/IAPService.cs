@@ -241,7 +241,7 @@ namespace LittleBit.Modules.IAppModule.Services
                     (double) metadata.LocalizedPrice,
                     ItemType, definition.Id,
                     CartType, receipt,
-                    Signature);       
+                    Signature, product.TransactionData.TransactionId);       
                 OnPurchasingProductSuccess?.Invoke(data);
             }
         }

@@ -64,14 +64,14 @@ namespace LittleBit.Modules.IAppModule.Services.PurchaseProcessors
                                     Debug.Log("Deferred IAP, Not bought yet!");
                                     return PurchaseProcessingResult.Pending;
                                 }
-                                
-                                Debug.Log(" product transactionID " + args.purchasedProduct.transactionID);
-                                Debug.Log(" product definition.id " + args.purchasedProduct.definition.id);
-                                Debug.Log(" product definition.storeSpecificId" + args.purchasedProduct.definition.storeSpecificId);
-                                Debug.Log(" google productID " + google.productID);
-                                Debug.Log(" google transactionID " + google.transactionID);
-                                Debug.Log(" google purchaseState " + google.purchaseState);
-                                Debug.Log(" google purchaseToken " + google.purchaseToken);
+                                //
+                                // Debug.Log(" product transactionID " + args.purchasedProduct.transactionID);
+                                // Debug.Log(" product definition.id " + args.purchasedProduct.definition.id);
+                                // Debug.Log(" product definition.storeSpecificId" + args.purchasedProduct.definition.storeSpecificId);
+                                // Debug.Log(" google productID " + google.productID);
+                                // Debug.Log(" google transactionID " + google.transactionID);
+                                // Debug.Log(" google purchaseState " + google.purchaseState);
+                                // Debug.Log(" google purchaseToken " + google.purchaseToken);
                             }
 
                             AppleInAppPurchaseReceipt apple = productReceipt as AppleInAppPurchaseReceipt;
@@ -84,16 +84,16 @@ namespace LittleBit.Modules.IAppModule.Services.PurchaseProcessors
                                     validPurchase = true;
                                 }
                                 
-                                Debug.Log(" validPurchase " + validPurchase);
-                                Debug.Log(" product transactionID " + args.purchasedProduct.transactionID);
-                                Debug.Log(" product definition.id " + args.purchasedProduct.definition.id);
-                                Debug.Log(" product is restored "  + args.purchasedProduct.appleProductIsRestored);
-                                Debug.Log(" product definition.storeSpecificId " + args.purchasedProduct.definition.storeSpecificId);
-                                Debug.Log(" apple transactionID " + apple.transactionID);
-                                Debug.Log(" apple transaction originalTransactionIdentifier " + apple.originalTransactionIdentifier);
-                                Debug.Log(" apple transaction subscriptionExpirationDate " + apple.subscriptionExpirationDate);
-                                Debug.Log(" apple transaction cancellationDate " + apple.cancellationDate);
-                                Debug.Log(" apple transaction quantity "  + apple.quantity);
+                                // Debug.Log(" validPurchase " + validPurchase);
+                                // Debug.Log(" product transactionID " + args.purchasedProduct.transactionID);
+                                // Debug.Log(" product definition.id " + args.purchasedProduct.definition.id);
+                                // Debug.Log(" product is restored "  + args.purchasedProduct.appleProductIsRestored);
+                                // Debug.Log(" product definition.storeSpecificId " + args.purchasedProduct.definition.storeSpecificId);
+                                // Debug.Log(" apple transactionID " + apple.transactionID);
+                                // Debug.Log(" apple transaction originalTransactionIdentifier " + apple.originalTransactionIdentifier);
+                                // Debug.Log(" apple transaction subscriptionExpirationDate " + apple.subscriptionExpirationDate);
+                                // Debug.Log(" apple transaction cancellationDate " + apple.cancellationDate);
+                                // Debug.Log(" apple transaction quantity "  + apple.quantity);
                             }
                         }
                     }
