@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LittleBit.Modules.IAppModule.Commands.Factory;
 using LittleBit.Modules.IAppModule.Data.Purchases;
+using Purchase;
 
 namespace LittleBit.Modules.IAppModule.Services
 {
@@ -49,7 +50,7 @@ namespace LittleBit.Modules.IAppModule.Services
 
             if (freePurchase)
             {
-                OnPurchasingSuccess(id);
+                OnPurchasingSuccess(id, null);
                 return;
             }
 
@@ -57,7 +58,7 @@ namespace LittleBit.Modules.IAppModule.Services
         }
         
 
-        private void OnPurchasingSuccess(string id)
+        private void OnPurchasingSuccess(string id, RecieptHandler reciept)
         {
             if (!_purchaseService.IsInitialized) return;
 

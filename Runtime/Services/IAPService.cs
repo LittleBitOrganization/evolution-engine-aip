@@ -7,6 +7,7 @@ using LittleBit.Modules.IAppModule.Services.PurchaseProcessors;
 using LittleBit.Modules.IAppModule.Services.TransactionsRestorers;
 using LittleBitGames.Environment.Events;
 using LittleBitGames.Environment.Purchase;
+using Purchase;
 using UnityEngine;
 using UnityEngine.Purchasing;
 
@@ -31,7 +32,7 @@ namespace LittleBit.Modules.IAppModule.Services
         private readonly IPurchaseHandler _purchaseHandler;
         private readonly List<OfferConfig> _offerConfigs;
         private readonly List<IPurchaseValidator> _purchaseValidators;
-        public event Action<string> OnPurchasingSuccess;
+        public event Action<string, RecieptHandler> OnPurchasingSuccess;
         public event Action<string> OnPurchasingFailed;
         public event Action<bool, string> OnPurchasingRestored;
         public event Action OnInitializationComplete;
@@ -116,8 +117,8 @@ namespace LittleBit.Modules.IAppModule.Services
             
           
             product!.Purchase();
-            OnPurchasingSuccess?.Invoke(id);
-            PurchasingProductSuccess(id);
+            OnPurchasingSuccess?.Invoke(id, null);
+            PurchasingProductSuccess(id, null);
 #else
 
             var product = _controller.products.WithID(id);
@@ -126,8 +127,8 @@ namespace LittleBit.Modules.IAppModule.Services
 
             if (freePurchase)
             {
-                OnPurchasingSuccess?.Invoke(id);
-                PurchasingProductSuccess(id);
+                OnPurchasingSuccess?.Invoke(id, null);
+                PurchasingProductSuccess(id, null);
                 return;
             }
 
@@ -181,7 +182,7 @@ namespace LittleBit.Modules.IAppModule.Services
             Debug.LogError("Initialization failed - !"+error+ ". Message " + message);
         }
 
-        private async void OtherValidate(PurchaseEventArgs purchaseEvent)
+        private async void OtherValidate(PurchaseEventArgs purchaseEvent, RecieptHandler receipt)
         {
             var id = purchaseEvent.purchasedProduct.definition.id;
             
@@ -195,14 +196,14 @@ namespace LittleBit.Modules.IAppModule.Services
                 }
             }
          
-            OnPurchasingSuccess?.Invoke(id);
+            OnPurchasingSuccess?.Invoke(id, receipt);
             _controller.ConfirmPendingPurchase(purchaseEvent.purchasedProduct);
-            PurchasingProductSuccess(id);
+            PurchasingProductSuccess(id, receipt);
         }
 
         public PurchaseProcessingResult ProcessPurchase(PurchaseEventArgs purchaseEvent)
         {
-            var result = _purchaseHandler.ProcessPurchase(purchaseEvent, (success) =>
+            var result = _purchaseHandler.ProcessPurchase(purchaseEvent, (success, receipt) =>
             {
                 var id = purchaseEvent.purchasedProduct.definition.id;
                 if (success)
@@ -210,7 +211,7 @@ namespace LittleBit.Modules.IAppModule.Services
 #if IAP_DEBUG || UNITY_EDITOR
                     (GetProductWrapper(id) as EditorProductWrapper)!.Purchase();
 #endif
-                    OtherValidate(purchaseEvent);
+                    OtherValidate(purchaseEvent, receipt);
                     
                 }
                 else
@@ -227,12 +228,12 @@ namespace LittleBit.Modules.IAppModule.Services
 
         public event Action<IDataEventEcommerce> OnPurchasingProductSuccess;
 
-        private void PurchasingProductSuccess(string productId)
+        private void PurchasingProductSuccess(string productId, RecieptHandler receipt)
         {
             var product = GetProductWrapper(productId);
             var metadata = product.Metadata;
             var definition = product.Definition;
-            var receipt = product.TransactionData.Receipt;
+            var stringReceipt = product.TransactionData.Receipt;
 
             if (!_isRestorePurchase)
             {
@@ -240,8 +241,9 @@ namespace LittleBit.Modules.IAppModule.Services
                     metadata.CurrencyCode,
                     (double) metadata.LocalizedPrice,
                     ItemType, definition.Id,
-                    CartType, receipt,
-                    Signature, product.TransactionData.TransactionId);       
+                    CartType, stringReceipt,
+                    Signature, product.TransactionData.TransactionId,
+                    receipt);       
                 OnPurchasingProductSuccess?.Invoke(data);
             }
         }

@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using LittleBit.Modules.IAppModule.Data;
+using Purchase;
 using UnityEngine;
 using UnityEngine.Purchasing;
+using UnityEngine.Purchasing.MiniJSON;
 using UnityEngine.Purchasing.Security;
 
 namespace LittleBit.Modules.IAppModule.Services.PurchaseProcessors
@@ -16,10 +19,11 @@ namespace LittleBit.Modules.IAppModule.Services.PurchaseProcessors
         }
         
         public PurchaseProcessingResult ProcessPurchase(PurchaseEventArgs args,
-            Action<bool> callback)
+            Action<bool, RecieptHandler> callback)
         {
             bool validPurchase = false;
-
+            Dictionary<string, object> wrapper = null;
+            
             TextAsset jsonFile = Resources.Load<TextAsset>("BillingMode");
 
             if (jsonFile != null)
@@ -27,6 +31,8 @@ namespace LittleBit.Modules.IAppModule.Services.PurchaseProcessors
                 BillingModeData billingModeData = JsonUtility.FromJson<BillingModeData>(jsonFile.text);
 
                 Debug.LogError("Store is " + billingModeData.androidStore);
+                
+                wrapper = Json.Deserialize(args.purchasedProduct.receipt) as Dictionary<string, object>;
                 
                 if (billingModeData.androidStore.Equals("AmazonAppStore"))
                 {
@@ -51,6 +57,7 @@ namespace LittleBit.Modules.IAppModule.Services.PurchaseProcessors
                         foreach (var productReceipt in purchaseReciepts)
                         {
                             GooglePlayReceipt google = productReceipt as GooglePlayReceipt;
+                            
                             if (null != google)
                             {
                                 if (string.Equals(args.purchasedProduct.transactionID,google.purchaseToken) &&
@@ -102,7 +109,7 @@ namespace LittleBit.Modules.IAppModule.Services.PurchaseProcessors
                     {
                         Debug.LogError("Invalid receipt!");
 
-                        callback?.Invoke(false);
+                        callback?.Invoke(false, null);
                     }
                 }
             }
@@ -114,9 +121,9 @@ namespace LittleBit.Modules.IAppModule.Services.PurchaseProcessors
             
             
             if(args.purchasedProduct.definition.type == ProductType.NonConsumable)
-                callback?.Invoke(validPurchase && PlayerPrefs.GetInt(args.purchasedProduct.definition.id, 0) == 0);
+                callback?.Invoke(validPurchase && PlayerPrefs.GetInt(args.purchasedProduct.definition.id, 0) == 0, new RecieptHandler(wrapper));
             else
-                callback?.Invoke(validPurchase);
+                callback?.Invoke(validPurchase, new RecieptHandler(wrapper));
             
             PlayerPrefs.SetInt(args.purchasedProduct.definition.id, 1);
             
